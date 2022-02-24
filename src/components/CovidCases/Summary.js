@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 
 import Map from "../Map/Map";
+import DataTable from "../Tables/DataTable";
+import Table from "../Tables/Table";
 import CountryInfo from "./CountryInfo";
 import DateSelectForm from "./DateSelectForm";
 import GlobalInfo from "./GlobalInfo";
@@ -9,14 +11,21 @@ function Summary() {
   const [countries, setCountries] = useState([]);
   const [summary, setSummary] = useState({});
   const [isSummaryLoading, setIsSummaryLoading] = useState(true);
+
   const [dateRange, setDateRange] = useState("");
+  const [dateChoice, setDateChoice] = useState("today");
+  const [countryInfoInDateRange, setCountryInfoInDateRange] = useState([]);
   // to store the information of selected country
   const [selectedCountry, setSelectedCountry] = useState({});
 
-  function dateSelectHandler(dtRange) {
+  function dateSelectHandler(dtRange, dtChoice) {
     //console.log(dateRange);
     setDateRange(dtRange);
-    //console.log(dateRange);
+    setDateChoice(dtChoice);
+    alert(
+      "Information in the seleted date range would be displayed in table below."
+    );
+    console.log(dateRange);
   }
 
   function getCountries() {
@@ -54,21 +63,30 @@ function Summary() {
 
   function onCountrySelectHandler(country, countryInfo) {
     //alert(country.Slug);
+    //console.log(dateRange);
 
-    // request covid case data for selected country in the selected date range
-    // const url =
-    //   "https://api.covid19api.com/country/" + country.Slug + "?" + dateRange;
-    // fetch(url)
-    //   .then((response) => {
-    //     return response.json();
-    //   })
-    //   .then((data) => {
-    //     //setCountries(data);
-    //     console.log(data);
-    //   });
+    //request total covid case data for selected country in the selected date range
+    if (dateChoice === "Range" && dateRange !== "") {
+      const url =
+        "https://api.covid19api.com/total/country/" +
+        country.Slug +
+        "?" +
+        dateRange;
 
-    // as of now show the country info for today's date
+      fetch(url)
+        .then((response) => {
+          return response.json();
+        })
+        .then((data) => {
+          setCountryInfoInDateRange(data);
+          //setCountries(data);
+          console.log(data);
+        });
+    }
+
+    // country info for today's date
     setSelectedCountry(countryInfo);
+
     //console.log(selectedCountry);
   }
 
@@ -88,6 +106,11 @@ function Summary() {
           onCountrySelect={onCountrySelectHandler}
           countriesSummary={summary.Countries}
         />
+        {dateChoice === "Range" && countryInfoInDateRange.length !== 0 ? (
+          <Table data={countryInfoInDateRange} />
+        ) : (
+          <div></div>
+        )}
       </div>
     );
   }
